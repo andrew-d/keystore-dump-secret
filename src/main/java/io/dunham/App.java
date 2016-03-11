@@ -15,8 +15,14 @@ public class App {
     @Parameter
     private List<String> keyStoreFiles;
 
-    @Parameter(names={"--entry-name"})
+    @Parameter(names={"--entry-name"}, description = "Name of the entry in the keystore to dump")
     private String entryName = "secret1";
+
+    @Parameter(names={"--keystore-format"}, description = "Keystore format")
+    private String keystoreFormat = "JCEKS";
+
+    @Parameter(names = {"-h", "--help"}, help = true, description = "Show this help")
+    private boolean help;
 
     public void run() {
         if (keyStoreFiles == null || keyStoreFiles.isEmpty()) {
@@ -27,7 +33,7 @@ public class App {
         final char[] password = promptPassword("Enter keystore password: ");
 
         try {
-            final KeyStore ks = KeyStore.getInstance("JCEKS");
+            final KeyStore ks = KeyStore.getInstance(keystoreFormat);
 
             try(final FileInputStream is = new FileInputStream(keyStoreFiles.get(0))) {
                 ks.load(is, password);
@@ -82,7 +88,13 @@ public class App {
 
     public static void main(String[] args) {
         App a = new App();
-        new JCommander(a, args);
+        JCommander jc = new JCommander(a, args);
+        jc.setProgramName("keystore-dump-secret");
+        if (a.help) {
+            jc.usage();
+            return;
+        }
+
         a.run();
     }
 }
